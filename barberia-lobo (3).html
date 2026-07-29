@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barbería Lobo — Reserva tu turno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Arvo:wght@400;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     PALETA — nombrada para que sea fácil de reutilizar/entender
+  ============================================================ */
+  :root{
+    --ink:#1A1815;       /* negro cálido, fondo principal */
+    --ink-soft:#252220;  /* variante para tarjetas sobre ink */
+    --leather:#5C3A21;   /* cuero, acentos secundarios */
+    --cream:#EFE6D8;     /* "papel" de los boletos */
+    --cream-dim:#E2D6C2;
+    --red:#9E2B25;       /* rojo barbería, apagado no neón */
+    --steel:#B8B2A6;     /* gris cálido para texto secundario */
+    --line: rgba(239,230,216,0.15);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--cream);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{margin:0;}
+  .display{font-family:'Bebas Neue',sans-serif; letter-spacing:1px;}
+  .slab{font-family:'Arvo',serif;}
+  .mono{font-family:'Space Mono',monospace;}
+  a{color:inherit;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+  section{padding:90px 0;}
+  img,svg{display:block;}
+
+  /* ============================================================
+     HEADER
+  ============================================================ */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    background:rgba(26,24,21,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    max-width:1080px;margin:0 auto;padding:16px 24px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .display{font-size:28px;color:var(--cream);}
+  .nav-links{display:flex;gap:26px;font-size:14px;color:var(--steel);}
+  .nav-links a:hover{color:var(--cream);}
+  @media(max-width:700px){.nav-links{display:none;}}
+  .nav-cta{
+    background:var(--red);color:var(--cream);
+    padding:10px 20px;font-family:'Arvo',serif;font-weight:700;font-size:13px;
+    letter-spacing:0.5px;
+  }
+
+  /* ============================================================
+     HERO — el "boleto" es la tesis visual de toda la página:
+     mostramos DE UNA VEZ el objeto que van a usar para reservar
+  ============================================================ */
+  .hero{
+    padding:150px 24px 70px;
+    display:grid;grid-template-columns:1.1fr 0.9fr;gap:50px;align-items:center;
+    max-width:1080px;margin:0 auto;
+  }
+  .hero-eyebrow{
+    font-family:'Space Mono',monospace;font-size:13px;color:var(--red);
+    letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;
+  }
+  .hero h1{
+    font-size:clamp(48px,7vw,84px);
+    line-height:0.95;color:var(--cream);
+    margin-bottom:20px;
+  }
+  .hero h1 span{color:var(--red);}
+  .hero p{font-size:17px;color:var(--steel);max-width:420px;line-height:1.6;margin-bottom:30px;}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:15px 28px;font-family:'Arvo',serif;font-weight:700;font-size:14px;
+    cursor:pointer;border:none;transition:transform .15s ease;
+  }
+  .btn:hover{transform:translateY(-2px);}
+  .btn-primary{background:var(--red);color:var(--cream);}
+  .btn-ghost{background:transparent;color:var(--cream);border:1.5px solid var(--cream);}
+
+  /* --- ticket / boleto perforado: elemento firma de todo el sitio --- */
+  .ticket{
+    background:var(--cream);color:var(--ink);
+    position:relative;
+    padding:26px 24px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.35);
+  }
+  .ticket::before, .ticket::after{
+    content:'';position:absolute;width:26px;height:26px;
+    background:var(--ink);border-radius:50%;
+    top:50%;transform:translateY(-50%);
+  }
+  .ticket::before{left:-13px;}
+  .ticket::after{right:-13px;}
+  .ticket-perf{
+    border-top:2px dashed var(--ink);
+    margin:16px 0;
+  }
+  .ticket-label{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--leather);}
+  .ticket-number{font-family:'Space Mono',monospace;font-size:44px;font-weight:700;line-height:1;margin:4px 0;}
+  .ticket-row{display:flex;justify-content:space-between;font-size:13px;margin-top:4px;color:#4a4136;}
+
+  /* divider styled like a barber pole strip */
+  .pole-divider{
+    height:10px;
+    background:repeating-linear-gradient(45deg,
+      var(--red) 0 18px, var(--cream) 18px 36px, #2c4a7a 36px 54px, var(--cream) 54px 72px);
+    opacity:0.9;
+  }
+
+  /* ============================================================
+     SECTION HEADS
+  ============================================================ */
+  .section-head{margin-bottom:44px;}
+  .section-head .hero-eyebrow{margin-bottom:8px;}
+  .section-head h2{font-size:clamp(34px,4.5vw,52px);color:var(--cream);}
+  .section-head p{color:var(--steel);max-width:480px;margin-top:10px;font-size:15px;}
+
+  /* ============================================================
+     SERVICIOS — estilo "menú de precios" de barbería, con reglas
+     finas en vez de tarjetas, como un letrero de pizarra
+  ============================================================ */
+  .menu-list{border-top:1px solid var(--line);}
+  .menu-item{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:20px 0;border-bottom:1px solid var(--line);
+    gap:20px;
+  }
+  .menu-item .name{font-family:'Arvo',serif;font-size:20px;color:var(--cream);}
+  .menu-item .desc{color:var(--steel);font-size:13px;margin-top:4px;}
+  .menu-item .meta{
+    display:flex;align-items:center;gap:18px;white-space:nowrap;
+  }
+  .menu-item .dur{font-family:'Space Mono',monospace;font-size:12px;color:var(--steel);}
+  .menu-item .price{font-family:'Space Mono',monospace;font-size:20px;color:var(--red);font-weight:700;}
+
+  /* ============================================================
+     BARBEROS
+  ============================================================ */
+  .barbers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  @media(max-width:800px){.barbers-grid{grid-template-columns:1fr;}}
+  .barber-card{border:1px solid var(--line);padding:24px;}
+  .barber-avatar{
+    width:56px;height:56px;border-radius:50%;
+    background:var(--leather);color:var(--cream);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Bebas Neue',sans-serif;font-size:22px;
+    margin-bottom:16px;
+  }
+  .barber-card h3{font-family:'Arvo',serif;font-size:20px;color:var(--cream);margin-bottom:4px;}
+  .barber-card .role{color:var(--red);font-size:12px;font-family:'Space Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;}
+  .barber-card p{color:var(--steel);font-size:13px;line-height:1.5;}
+
+  /* ============================================================
+     RESERVAR — el sistema de citas
+  ============================================================ */
+  .booking-box{
+    background:var(--ink-soft);border:1px solid var(--line);
+    padding:34px;
+  }
+  .field-label{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--steel);margin-bottom:10px;display:block;}
+
+  .day-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:28px;}
+  .day-btn{
+    flex:0 0 auto;background:transparent;border:1px solid var(--line);color:var(--cream);
+    padding:10px 14px;cursor:pointer;font-family:'Inter',sans-serif;text-align:center;min-width:64px;
+  }
+  .day-btn .d{font-size:11px;color:var(--steel);display:block;text-transform:uppercase;}
+  .day-btn .n{font-family:'Space Mono',monospace;font-size:18px;display:block;margin-top:2px;}
+  .day-btn.active{background:var(--red);border-color:var(--red);}
+
+  .choice-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px;}
+  .choice-pill{
+    background:transparent;border:1px solid var(--line);color:var(--cream);
+    padding:9px 16px;cursor:pointer;font-size:13px;
+  }
+  .choice-pill.active{background:var(--leather);border-color:var(--leather);}
+
+  .slots-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px;margin-bottom:30px;
+  }
+  .slot-btn{
+    background:var(--cream);color:var(--ink);border:none;
+    padding:12px 6px;font-family:'Space Mono',monospace;font-size:13px;cursor:pointer;
+    position:relative;
+  }
+  .slot-btn.taken{background:#3a352f;color:#6d655a;cursor:not-allowed;}
+  .slot-btn.past{background:transparent;color:#524b40;border:1px dashed var(--line);cursor:not-allowed;}
+  .slot-btn.selected{background:var(--red);color:var(--cream);}
+
+  .contact-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+  @media(max-width:600px){.contact-fields{grid-template-columns:1fr;}}
+  .contact-fields input{
+    width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--line);
+    color:var(--cream);font-family:'Inter',sans-serif;font-size:15px;padding:10px 2px;
+  }
+  .contact-fields input:focus{outline:none;border-color:var(--red);}
+  .contact-fields input::placeholder{color:var(--steel);}
+
+  .confirm-area{margin-top:10px;}
+  .empty-hint{color:var(--steel);font-size:14px;font-style:italic;}
+
+  /* confirmation ticket that appears after booking */
+  .confirm-ticket{max-width:340px;margin-top:24px;}
+
+  footer{border-top:1px solid var(--line);padding:50px 24px 28px;}
+  .foot-grid{display:flex;flex-wrap:wrap;gap:36px;justify-content:space-between;}
+  .foot-col h4{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);margin-bottom:12px;}
+  .foot-col p, .foot-col a{display:block;font-size:14px;color:var(--steel);margin-bottom:6px;}
+  .foot-bottom{margin-top:34px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--steel);text-align:center;}
+
+  .whatsapp-note{
+    background:var(--ink-soft);border-left:3px solid var(--red);
+    padding:14px 18px;font-size:13px;color:var(--steel);margin-top:20px;max-width:500px;
+  }
+
+  @media(max-width:800px){
+    .hero{grid-template-columns:1fr;padding-top:120px;}
+    .hero-visual{order:-1;max-width:280px;margin:0 auto;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="brand">
+      <!-- ícono simple de navaja, hecho en SVG en vez de un logo importado -->
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9E2B25" stroke-width="1.6">
+        <path d="M4 12h9l6-4-2 4 2 4-6-4H4z"/>
+        <circle cx="4" cy="12" r="2" fill="#9E2B25" stroke="none"/>
+      </svg>
+      <div class="display">BARBERÍA LOBO</div>
+    </div>
+    <nav class="nav-links">
+      <a href="#servicios">Servicios</a>
+      <a href="#barberos">Barberos</a>
+      <a href="#reservar">Reservar</a>
+    </nav>
+    <a class="nav-cta" href="#reservar">Reservar turno</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div>
+    <div class="hero-eyebrow">Col. Costa Azul · Acapulco</div>
+    <h1>TOMA TU<br><span>TURNO.</span><br>SIN FILA.</h1>
+    <p>Reserva tu corte o arreglo de barba en segundos. Elige día, barbero y hora — nosotros te esperamos con la silla lista.</p>
+    <a class="btn btn-primary" href="#reservar">Reservar ahora</a>
+  </div>
+  <div class="hero-visual">
+    <div class="ticket">
+      <div class="ticket-label">Próximo turno disponible</div>
+      <div class="ticket-number" id="hero-next-slot">10:30</div>
+      <div class="ticket-perf"></div>
+      <div class="ticket-row"><span>Servicio</span><span>Fade + Barba</span></div>
+      <div class="ticket-row"><span>Barbero</span><span>Cualquiera</span></div>
+      <div class="ticket-row"><span>Hoy</span><span id="hero-today"></span></div>
+    </div>
+  </div>
+</section>
+
+<div class="pole-divider"></div>
+
+<section id="servicios">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="hero-eyebrow">Menú</div>
+      <h2 class="slab">Servicios y precios</h2>
+      <p>Precios de ejemplo — ajústalos a los reales de tu negocio.</p>
+    </div>
+    <div class="menu-list" id="services-menu"></div>
+  </div>
+</section>
+
+<section id="barberos" style="background:var(--ink-soft);">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="hero-eyebrow">Equipo</div>
+      <h2 class="slab">Nuestros barberos</h2>
+    </div>
+    <div class="barbers-grid" id="barbers-grid"></div>
+  </div>
+</section>
+
+<section id="reservar">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="hero-eyebrow">Paso 1, 2 y 3</div>
+      <h2 class="slab">Reserva tu turno</h2>
+      <p>Elige día, servicio, barbero y hora. Tu boleto se genera al instante.</p>
+    </div>
+
+    <div class="booking-box">
+
+      <span class="field-label">1 · Elige el día</span>
+      <div class="day-strip" id="day-strip"></div>
+
+      <span class="field-label">2 · Elige el servicio</span>
+      <div class="choice-row" id="service-choices"></div>
+
+      <span class="field-label">3 · Elige el barbero</span>
+      <div class="choice-row" id="barber-choices"></div>
+
+      <span class="field-label">4 · Elige la hora</span>
+      <div class="slots-grid" id="slots-grid"></div>
+
+      <div id="contact-section" style="display:none;">
+        <span class="field-label">5 · Tus datos</span>
+        <div class="contact-fields">
+          <input type="text" id="input-name" placeholder="Tu nombre">
+          <input type="tel" id="input-phone" placeholder="Tu WhatsApp (10 dígitos)">
+        </div>
+        <button class="btn btn-primary" id="btn-confirm">Confirmar reservación</button>
+      </div>
+
+      <div class="confirm-area" id="confirm-area"></div>
+
+      <div class="whatsapp-note">
+        <strong>Nota de aprendizaje:</strong> este boleto se guarda solo en tu navegador mientras tienes la página abierta (es una demo de portafolio). Para que las reservas se guarden de verdad entre distintos visitantes, el siguiente paso sería conectar esto a una base de datos real — justo lo que veremos en la Fase 3 de tu ruta de aprendizaje.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="display" style="font-size:26px;">BARBERÍA LOBO</div>
+        <p style="color:var(--steel);font-size:13px;margin-top:8px;max-width:240px;">Cortes clásicos y modernos en el corazón de Acapulco.</p>
+      </div>
+      <div class="foot-col">
+        <h4>Contacto</h4>
+        <a href="#">WhatsApp: 744 000 0000</a>
+        <a href="#">Costa Azul, Acapulco, Gro.</a>
+      </div>
+      <div class="foot-col">
+        <h4>Horario</h4>
+        <p>Lun – Sáb: 10:00 – 20:00</p>
+        <p>Domingo: cerrado</p>
+      </div>
+    </div>
+    <div class="foot-bottom">Proyecto de portafolio — Barbería Lobo (negocio ficticio).</div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   DATOS DEL NEGOCIO
+   Todo lo que cambiaría de barbería a barbería vive aquí arriba,
+   separado del resto del código. Así se personaliza fácil.
+============================================================ */
+const SERVICES = [
+  { id: 'clasico',  name: 'Corte clásico',      desc: 'Tijera y máquina, acabado con navaja.', price: 150, duration: 30 },
+  { id: 'fade',     name: 'Fade / degradado',   desc: 'Degradado a máquina, cualquier estilo.', price: 200, duration: 45 },
+  { id: 'barba',    name: 'Arreglo de barba',   desc: 'Perfilado, navaja y toalla caliente.',    price: 120, duration: 20 },
+  { id: 'completo', name: 'Corte + Barba',      desc: 'El paquete completo.',                    price: 280, duration: 60 },
+  { id: 'disenio',  name: 'Diseño / línea',     desc: 'Diseño a navaja, líneas o dibujos.',       price: 100, duration: 20 },
+];
+
+const BARBERS = [
+  { id: 'cualquiera', name: 'Cualquiera disponible', role: 'El primero libre', bio: 'Te asignamos al barbero disponible más pronto.' },
+  { id: 'tono',        name: 'Tono',    role: 'Especialista en fades', bio: '8 años de experiencia. Le va bien con los degradados difíciles.' },
+  { id: 'chuy',        name: 'Chuy',    role: 'Barbas y navaja',       bio: 'El de la mano firme para arreglos de barba y diseño.' },
+];
+
+const OPEN_HOUR = 10;   // abre 10:00
+const CLOSE_HOUR = 20;  // cierra 20:00
+const SLOT_STEP_MIN = 30;
+
+/* ============================================================
+   CONEXIÓN AL BACKEND (Node-RED)
+   Cambia esta URL cuando muevas Node-RED de tu máquina a un
+   servidor real. Mientras pruebas en local, Node-RED corre en
+   el puerto 1880 por default.
+============================================================ */
+const API_BASE = 'https://barber-m3g4.onrender.com';
+
+/* ============================================================
+   ESTADO — selección actual del usuario en pantalla, más el
+   caché de horarios ocupados que llega del backend (Node-RED).
+   Los horarios YA NO viven en el navegador: los pide cada vez
+   que cambian fecha o barbero, así todos los visitantes ven
+   la misma disponibilidad real.
+============================================================ */
+const state = {
+  selectedDate: null,
+  selectedService: SERVICES[1].id,
+  selectedBarber: BARBERS[0].id,
+  selectedSlot: null,
+  ocupados: [],        // horarios ocupados para la fecha+barbero actual (llega del backend)
+  loadingSlots: false,
+};
+
+async function fetchDisponibilidad(dateStr, barberId){
+  const url = `${API_BASE}/api/disponibilidad?fecha=${encodeURIComponent(dateStr)}&barbero=${encodeURIComponent(barberId)}`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('No se pudo consultar disponibilidad');
+  const data = await res.json();
+  return data.ocupados || [];
+}
+
+async function refreshAvailability(){
+  state.loadingSlots = true;
+  renderSlotsGrid(); // pinta el estado "cargando" de inmediato
+  try{
+    state.ocupados = await fetchDisponibilidad(state.selectedDate, state.selectedBarber);
+  }catch(err){
+    console.error(err);
+    state.ocupados = [];
+  }
+  state.loadingSlots = false;
+  renderSlotsGrid();
+}
+
+/* ============================================================
+   UTILIDADES DE FECHA
+============================================================ */
+const DAY_NAMES = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+function fmtDate(d){
+  // formato AAAA-MM-DD usando la fecha LOCAL del navegador (no UTC).
+  // toISOString() convierte a UTC y puede "adelantar" el día en la
+  // noche para zonas horarias como México (UTC-6) — por eso NO se usa.
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function next7Days(){
+  const days = [];
+  const today = new Date();
+  for(let i=0;i<7;i++){
+    const d = new Date(today);
+    d.setDate(today.getDate()+i);
+    days.push(d);
+  }
+  return days;
+}
+function generateSlots(){
+  const slots = [];
+  for(let h=OPEN_HOUR; h<CLOSE_HOUR; h++){
+    for(let m=0; m<60; m+=SLOT_STEP_MIN){
+      slots.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));
+    }
+  }
+  return slots;
+}
+
+/* ============================================================
+   RENDER — cada función pinta una parte de la pantalla.
+   Se vuelven a llamar cada vez que el usuario cambia algo.
+============================================================ */
+function renderServicesMenu(){
+  const el = document.getElementById('services-menu');
+  el.innerHTML = SERVICES.map(s => `
+    <div class="menu-item">
+      <div>
+        <div class="name slab">${s.name}</div>
+        <div class="desc">${s.desc}</div>
+      </div>
+      <div class="meta">
+        <span class="dur">${s.duration} min</span>
+        <span class="price">$${s.price}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderBarbersGrid(){
+  const el = document.getElementById('barbers-grid');
+  el.innerHTML = BARBERS.filter(b => b.id !== 'cualquiera').map(b => `
+    <div class="barber-card">
+      <div class="barber-avatar">${b.name[0]}</div>
+      <h3>${b.name}</h3>
+      <div class="role">${b.role}</div>
+      <p>${b.bio}</p>
+    </div>
+  `).join('');
+}
+
+function renderDayStrip(){
+  const el = document.getElementById('day-strip');
+  const days = next7Days();
+  if(!state.selectedDate) state.selectedDate = fmtDate(days[0]);
+  el.innerHTML = days.map(d => {
+    const key = fmtDate(d);
+    const active = key === state.selectedDate ? 'active' : '';
+    return `<button class="day-btn ${active}" data-date="${key}">
+      <span class="d">${DAY_NAMES[d.getDay()]}</span>
+      <span class="n">${d.getDate()}</span>
+    </button>`;
+  }).join('');
+  el.querySelectorAll('.day-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.selectedDate = btn.dataset.date;
+      state.selectedSlot = null;
+      renderAll();
+    });
+  });
+}
+
+function renderServiceChoices(){
+  const el = document.getElementById('service-choices');
+  el.innerHTML = SERVICES.map(s=>{
+    const active = s.id === state.selectedService ? 'active' : '';
+    return `<button class="choice-pill ${active}" data-id="${s.id}">${s.name}</button>`;
+  }).join('');
+  el.querySelectorAll('.choice-pill').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.selectedService = btn.dataset.id;
+      state.selectedSlot = null;
+      renderAll();
+    });
+  });
+}
+
+function renderBarberChoices(){
+  const el = document.getElementById('barber-choices');
+  el.innerHTML = BARBERS.map(b=>{
+    const active = b.id === state.selectedBarber ? 'active' : '';
+    return `<button class="choice-pill ${active}" data-id="${b.id}">${b.name}</button>`;
+  }).join('');
+  el.querySelectorAll('.choice-pill').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.selectedBarber = btn.dataset.id;
+      state.selectedSlot = null;
+      renderAll();
+    });
+  });
+}
+
+function renderSlotsGrid(){
+  const el = document.getElementById('slots-grid');
+  if(state.loadingSlots){
+    el.innerHTML = `<span class="empty-hint">Consultando horarios disponibles…</span>`;
+    return;
+  }
+  const slots = generateSlots();
+
+  // Si el día elegido es HOY, cualquier horario que ya haya pasado
+  // (según la hora local del navegador) se muestra como no disponible,
+  // aunque nadie lo haya reservado todavía.
+  const isToday = state.selectedDate === fmtDate(new Date());
+  const now = new Date();
+  const nowMinutes = now.getHours()*60 + now.getMinutes();
+
+  el.innerHTML = slots.map(time=>{
+    const taken = state.ocupados.includes(time);
+    const [hh, mm] = time.split(':').map(Number);
+    const past = isToday && (hh*60 + mm) <= nowMinutes;
+    const selected = state.selectedSlot === time;
+    const cls = taken ? 'taken' : (past ? 'past' : (selected ? 'selected' : ''));
+    const disabled = taken || past;
+    return `<button class="slot-btn ${cls}" data-time="${time}" ${disabled ? 'disabled' : ''}>${time}</button>`;
+  }).join('');
+  el.querySelectorAll('.slot-btn:not(.taken):not(.past)').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.selectedSlot = btn.dataset.time;
+      renderSlotsGrid();
+      renderConfirmArea();
+      document.getElementById('contact-section').style.display = 'block';
+    });
+  });
+
+  document.getElementById('contact-section').style.display = state.selectedSlot ? 'block' : 'none';
+}
+
+function renderConfirmArea(){
+  const el = document.getElementById('confirm-area');
+  if(!state.selectedSlot){
+    el.innerHTML = `<p class="empty-hint">Elige una hora disponible arriba para continuar.</p>`;
+  } else if(!el.dataset.locked){
+    el.innerHTML = '';
+  }
+}
+
+/* ============================================================
+   CONFIRMAR RESERVACIÓN
+   Ahora manda la reserva a Node-RED. El backend es quien decide
+   si el horario sigue libre — así dos personas ya no pueden
+   ganar el mismo turno al mismo tiempo.
+============================================================ */
+async function confirmBooking(){
+  const name = document.getElementById('input-name').value.trim();
+  const phone = document.getElementById('input-phone').value.trim();
+  if(!name || !phone){
+    alert('Por favor completa tu nombre y WhatsApp para confirmar.');
+    return;
+  }
+
+  const service = SERVICES.find(s=>s.id===state.selectedService);
+  const barber = BARBERS.find(b=>b.id===state.selectedBarber);
+  const btn = document.getElementById('btn-confirm');
+  btn.disabled = true;
+  btn.textContent = 'Confirmando…';
+
+  let data;
+  try{
+    const res = await fetch(`${API_BASE}/api/reservar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nombre: name,
+        telefono: phone,
+        servicio: service.id,
+        barbero: barber.id,
+        fecha: state.selectedDate,
+        hora: state.selectedSlot,
+      }),
+    });
+    data = await res.json();
+
+    if(!res.ok || !data.ok){
+      // Alguien más tomó ese horario justo antes que tú: refrescamos y avisamos.
+      alert(data.error || 'Ese horario ya no está disponible. Elige otro.');
+      state.selectedSlot = null;
+      await refreshAvailability();
+      btn.disabled = false;
+      btn.textContent = 'Confirmar reservación';
+      return;
+    }
+  }catch(err){
+    console.error(err);
+    alert('No se pudo conectar con el servidor de reservas. Intenta de nuevo.');
+    btn.disabled = false;
+    btn.textContent = 'Confirmar reservación';
+    return;
+  }
+
+  const dateObj = new Date(state.selectedDate+'T00:00:00');
+  const dateLabel = dateObj.toLocaleDateString('es-MX', { weekday:'long', day:'numeric', month:'long' });
+
+  const confirmArea = document.getElementById('confirm-area');
+  confirmArea.dataset.locked = 'true';
+  confirmArea.innerHTML = `
+    <div class="ticket confirm-ticket">
+      <div class="ticket-label">Turno confirmado</div>
+      <div class="ticket-number">#${data.folio}</div>
+      <div class="ticket-perf"></div>
+      <div class="ticket-row"><span>Nombre</span><span>${name}</span></div>
+      <div class="ticket-row"><span>Servicio</span><span>${service.name}</span></div>
+      <div class="ticket-row"><span>Barbero</span><span>${barber.name}</span></div>
+      <div class="ticket-row"><span>Día</span><span>${dateLabel}</span></div>
+      <div class="ticket-row"><span>Hora</span><span>${state.selectedSlot}</span></div>
+      <div class="ticket-row"><span>Total</span><span>$${service.price} MXN</span></div>
+    </div>
+  `;
+
+  document.getElementById('contact-section').style.display = 'none';
+  btn.disabled = false;
+  btn.textContent = 'Confirmar reservación';
+  await refreshAvailability();
+}
+
+document.getElementById('btn-confirm').addEventListener('click', confirmBooking);
+
+/* ============================================================
+   HERO — muestra el próximo horario libre como boleto de ejemplo
+============================================================ */
+function renderHeroTicket(){
+  const today = new Date();
+  document.getElementById('hero-today').textContent =
+    today.toLocaleDateString('es-MX', { day:'numeric', month:'short' });
+}
+
+/* ============================================================
+   RENDER GENERAL
+============================================================ */
+async function renderAll(){
+  renderDayStrip();
+  renderServiceChoices();
+  renderBarberChoices();
+  await refreshAvailability();
+  renderConfirmArea();
+}
+
+renderServicesMenu();
+renderBarbersGrid();
+renderHeroTicket();
+renderAll();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barbería Lobo — Panel del día</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Arvo:wght@400;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1A1815;
+    --ink-soft:#252220;
+    --leather:#5C3A21;
+    --cream:#EFE6D8;
+    --cream-dim:#E2D6C2;
+    --red:#9E2B25;
+    --steel:#B8B2A6;
+    --line: rgba(239,230,216,0.15);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--cream);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .display{font-family:'Bebas Neue',sans-serif; letter-spacing:1px;}
+  .mono{font-family:'Space Mono',monospace;}
+  .wrap{max-width:760px;margin:0 auto;padding:40px 24px 80px;}
+
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:36px;flex-wrap:wrap;gap:16px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand svg{flex:0 0 auto;}
+  .brand .display{font-size:24px;}
+  .brand .sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);}
+
+  .date-control{
+    display:flex;align-items:center;gap:10px;background:var(--ink-soft);
+    border:1px solid var(--line);padding:10px 14px;
+  }
+  .date-control label{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--steel);}
+  .date-control input[type=date]{
+    background:transparent;border:none;color:var(--cream);font-family:'Space Mono',monospace;
+    font-size:14px;color-scheme:dark;
+  }
+  .date-control input[type=date]:focus{outline:none;}
+
+  .day-heading{margin-bottom:22px;}
+  .day-heading .label{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:6px;}
+  .day-heading h1{font-family:'Arvo',serif;font-size:26px;margin:0;text-transform:capitalize;}
+  .day-heading .count{color:var(--steel);font-size:14px;margin-top:4px;}
+
+  .state-msg{
+    border:1px dashed var(--line);padding:40px 24px;text-align:center;
+    color:var(--steel);font-size:14px;
+  }
+  .state-msg strong{display:block;color:var(--cream);font-family:'Arvo',serif;font-size:17px;margin-bottom:6px;}
+
+  .cita-list{border-top:1px solid var(--line);}
+  .cita-row{
+    display:grid;grid-template-columns:70px 1fr auto;gap:16px;align-items:center;
+    padding:16px 4px;border-bottom:1px solid var(--line);
+  }
+  .cita-hora{font-family:'Space Mono',monospace;font-size:18px;color:var(--cream);}
+  .cita-info .cliente{font-family:'Arvo',serif;font-size:16px;color:var(--cream);}
+  .cita-info .detalle{font-size:13px;color:var(--steel);margin-top:2px;}
+  .cita-info .detalle a{color:var(--steel);text-decoration:none;border-bottom:1px dotted var(--steel);}
+  .cita-info .detalle a:hover{color:var(--cream);border-color:var(--cream);}
+  .barbero-tag{
+    font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+    padding:6px 10px;border:1px solid var(--line);white-space:nowrap;color:var(--steel);
+  }
+  .barbero-tag.tono{border-color:var(--leather);color:var(--cream-dim);}
+  .barbero-tag.chuy{border-color:var(--red);color:var(--cream-dim);}
+
+  .refresh-btn{
+    display:inline-flex;align-items:center;gap:8px;margin-top:28px;
+    background:transparent;border:1px solid var(--line);color:var(--steel);
+    padding:10px 18px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;
+    text-transform:uppercase;cursor:pointer;
+  }
+  .refresh-btn:hover{color:var(--cream);border-color:var(--cream);}
+
+  @media(max-width:480px){
+    .cita-row{grid-template-columns:56px 1fr;}
+    .barbero-tag{grid-column:1 / -1;justify-self:start;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9E2B25" stroke-width="1.6">
+        <path d="M4 12h9l6-4-2 4 2 4-6-4H4z"/>
+        <circle cx="4" cy="12" r="2" fill="#9E2B25" stroke="none"/>
+      </svg>
+      <div>
+        <div class="display">BARBERÍA LOBO</div>
+        <div class="sub">Panel del día</div>
+      </div>
+    </div>
+    <div class="date-control">
+      <label for="input-fecha">Fecha</label>
+      <input type="date" id="input-fecha">
+    </div>
+  </header>
+
+  <div class="day-heading">
+    <div class="label">Agenda</div>
+    <h1 id="heading-fecha">—</h1>
+    <div class="count" id="heading-count"></div>
+  </div>
+
+  <div id="content"></div>
+
+  <button class="refresh-btn" id="btn-refresh">↻ Actualizar</button>
+</div>
+
+<script>
+/* ============================================================
+   Cambia esta URL cuando muevas Node-RED de tu máquina a un
+   servidor real (misma variable que en barberia-lobo.html).
+============================================================ */
+const API_BASE = 'https://barber-m3g4.onrender.com';
+
+const inputFecha = document.getElementById('input-fecha');
+const headingFecha = document.getElementById('heading-fecha');
+const headingCount = document.getElementById('heading-count');
+const content = document.getElementById('content');
+
+function hoyStr(){
+  // Fecha LOCAL del navegador (no UTC) — evita el mismo desfase de
+  // un día que se corrigió en barberia-lobo.html.
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function fmtEncabezado(fechaStr){
+  const d = new Date(fechaStr+'T00:00:00');
+  return d.toLocaleDateString('es-MX', { weekday:'long', day:'numeric', month:'long' });
+}
+
+function barberoClass(nombre){
+  const n = (nombre||'').toLowerCase();
+  if(n === 'tono') return 'tono';
+  if(n === 'chuy') return 'chuy';
+  return '';
+}
+
+async function cargarCitas(fecha){
+  headingFecha.textContent = fmtEncabezado(fecha);
+  content.innerHTML = `<div class="state-msg">Consultando agenda…</div>`;
+  headingCount.textContent = '';
+
+  try{
+    const res = await fetch(`${API_BASE}/api/citas-dia?fecha=${encodeURIComponent(fecha)}`);
+    if(!res.ok) throw new Error('Respuesta no OK');
+    const data = await res.json();
+    const citas = data.citas || [];
+
+    if(citas.length === 0){
+      content.innerHTML = `<div class="state-msg"><strong>Sin citas este día</strong>Todavía no hay reservaciones para esta fecha.</div>`;
+      headingCount.textContent = '0 citas';
+      return;
+    }
+
+    headingCount.textContent = citas.length === 1 ? '1 cita' : `${citas.length} citas`;
+    content.innerHTML = `<div class="cita-list">` + citas.map(c => `
+      <div class="cita-row">
+        <div class="cita-hora mono">${c.hora}</div>
+        <div class="cita-info">
+          <div class="cliente">${c.cliente}</div>
+          <div class="detalle">${c.servicio} · <a href="tel:${c.telefono}">${c.telefono}</a></div>
+        </div>
+        <div class="barbero-tag ${barberoClass(c.barbero)}">${c.barbero}</div>
+      </div>
+    `).join('') + `</div>`;
+
+  }catch(err){
+    console.error(err);
+    content.innerHTML = `<div class="state-msg"><strong>No se pudo cargar la agenda</strong>Revisa que Node-RED esté corriendo y vuelve a intentar.</div>`;
+  }
+}
+
+inputFecha.addEventListener('change', () => cargarCitas(inputFecha.value));
+document.getElementById('btn-refresh').addEventListener('click', () => cargarCitas(inputFecha.value));
+
+inputFecha.value = hoyStr();
+cargarCitas(inputFecha.value);
+</script>
+
+</body>
+</html>
