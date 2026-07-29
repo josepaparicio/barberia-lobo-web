@@ -8,14 +8,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Arvo:wght@400;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#1A1815;
-    --ink-soft:#252220;
-    --leather:#5C3A21;
-    --cream:#EFE6D8;
-    --cream-dim:#E2D6C2;
-    --red:#9E2B25;
-    --steel:#B8B2A6;
-    --line: rgba(239,230,216,0.15);
+    /* Misma paleta "barber beach" que en la página pública */
+    --ink:#0E2A3D;
+    --ink-soft:#163C52;
+    --leather:#C97B3D;
+    --cream:#F5EDDC;
+    --cream-dim:#E9DCC0;
+    --red:#E4603A;
+    --steel:#8FAFAE;
+    --line: rgba(245,237,220,0.15);
   }
   *{box-sizing:border-box;}
   body{
@@ -75,8 +76,8 @@
     font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;
     padding:6px 10px;border:1px solid var(--line);white-space:nowrap;color:var(--steel);
   }
-  .barbero-tag.tono{border-color:var(--leather);color:var(--cream-dim);}
-  .barbero-tag.chuy{border-color:var(--red);color:var(--cream-dim);}
+  .barbero-tag.yuli{border-color:var(--leather);color:var(--cream-dim);}
+  .barbero-tag.mafe{border-color:var(--red);color:var(--cream-dim);}
 
   .refresh-btn{
     display:inline-flex;align-items:center;gap:8px;margin-top:28px;
@@ -111,6 +112,7 @@
     width:100%;background:var(--red);color:var(--cream);border:none;
     padding:13px;font-family:'Arvo',serif;font-weight:700;font-size:14px;cursor:pointer;margin-top:8px;
   }
+  .login-btn:disabled{opacity:0.5;cursor:default;}
   .login-error{color:var(--red);font-size:13px;margin-top:14px;min-height:18px;}
   #login-screen.hidden{display:none;}
 
@@ -126,7 +128,7 @@
      contra PANEL_USER / PANEL_PASSWORD del backend -->
 <div id="login-screen">
   <div class="login-box">
-    <div class="display">BARBERÍA LOBO</div>
+    <div class="display">BARBER BEACH</div>
     <span class="sub">Acceso del panel</span>
     <form id="login-form">
       <div class="login-field">
@@ -137,7 +139,7 @@
         <label for="login-pass">Contraseña</label>
         <input type="password" id="login-pass" autocomplete="current-password" required>
       </div>
-      <button type="submit" class="login-btn">Entrar</button>
+      <button type="submit" class="login-btn" id="login-btn">Entrar</button>
       <div class="login-error" id="login-error"></div>
     </form>
   </div>
@@ -146,12 +148,12 @@
 <div class="wrap">
   <header>
     <div class="brand">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9E2B25" stroke-width="1.6">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E4603A" stroke-width="1.6">
         <path d="M4 12h9l6-4-2 4 2 4-6-4H4z"/>
-        <circle cx="4" cy="12" r="2" fill="#9E2B25" stroke="none"/>
+        <circle cx="4" cy="12" r="2" fill="#E4603A" stroke="none"/>
       </svg>
       <div>
-        <div class="display">BARBERÍA LOBO</div>
+        <div class="display">BARBER BEACH</div>
         <div class="sub">Panel del día</div>
       </div>
     </div>
@@ -183,13 +185,15 @@ const inputFecha = document.getElementById('input-fecha');
 const headingFecha = document.getElementById('heading-fecha');
 const headingCount = document.getElementById('heading-count');
 const content = document.getElementById('content');
+const loginBtn = document.getElementById('login-btn');
+const loginError = document.getElementById('login-error');
 
 /* ============================================================
    AUTENTICACIÓN (Basic Auth)
-   Guardamos el header ya armado en sessionStorage: se pide de
-   nuevo cada vez que se cierra el navegador/pestaña, pero no en
-   cada recarga de la misma sesión. Como es un panel interno de
-   la barbería (no la web pública), esto es suficiente por ahora.
+   IMPORTANTE: el header SOLO se guarda en sessionStorage después
+   de que el backend responde 200 (credenciales confirmadas).
+   Nunca se guarda "por adelantado" ni se acepta como válido un
+   error de red — un fallo de conexión NO cuenta como login exitoso.
 ============================================================ */
 const AUTH_KEY = 'lobo_panel_auth';
 
@@ -197,10 +201,8 @@ function getAuthHeader(){
   return sessionStorage.getItem(AUTH_KEY);
 }
 
-function setAuthHeader(usuario, pass){
-  const header = 'Basic ' + btoa(`${usuario}:${pass}`);
-  sessionStorage.setItem(AUTH_KEY, header);
-  return header;
+function buildAuthHeader(usuario, pass){
+  return 'Basic ' + btoa(`${usuario}:${pass}`);
 }
 
 function clearAuthHeader(){
@@ -209,7 +211,7 @@ function clearAuthHeader(){
 
 function showLogin(mensajeError){
   document.getElementById('login-screen').classList.remove('hidden');
-  document.getElementById('login-error').textContent = mensajeError || '';
+  loginError.textContent = mensajeError || '';
 }
 
 function hideLogin(){
@@ -220,18 +222,42 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const usuario = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value;
-  const header = setAuthHeader(usuario, pass);
+  const header = buildAuthHeader(usuario, pass);
 
-  // Probamos el header contra el backend real antes de dar por
-  // buena la sesión — así detectamos usuario/contraseña incorrectos.
-  const ok = await cargarCitas(inputFecha.value, header);
-  if(ok){
+  loginBtn.disabled = true;
+  loginError.textContent = 'Verificando…';
+
+  const resultado = await intentarLogin(header);
+
+  loginBtn.disabled = false;
+
+  if(resultado === 'ok'){
+    sessionStorage.setItem(AUTH_KEY, header); // solo se guarda tras éxito confirmado
     hideLogin();
+    cargarCitas(inputFecha.value);
+  } else if(resultado === 'credenciales-invalidas'){
+    loginError.textContent = 'Usuario o contraseña incorrectos.';
   } else {
-    clearAuthHeader();
-    document.getElementById('login-error').textContent = 'Usuario o contraseña incorrectos.';
+    // error de red / CORS / servidor caído: NO se concede acceso
+    loginError.textContent = 'No se pudo conectar con el servidor. Intenta de nuevo.';
   }
 });
+
+/* Intenta autenticar sin tocar la UI del panel — solo para el login.
+   Devuelve: 'ok' | 'credenciales-invalidas' | 'error-red' */
+async function intentarLogin(authHeader){
+  try{
+    const res = await fetch(`${API_BASE}/api/citas-dia?fecha=${encodeURIComponent(hoyStr())}`, {
+      headers: { 'Authorization': authHeader }
+    });
+    if(res.status === 401) return 'credenciales-invalidas';
+    if(!res.ok) return 'error-red';
+    return 'ok';
+  }catch(err){
+    console.error(err);
+    return 'error-red';
+  }
+}
 
 /* ============================================================
    FECHAS
@@ -251,21 +277,19 @@ function fmtEncabezado(fechaStr){
 
 function barberoClass(nombre){
   const n = (nombre||'').toLowerCase();
-  if(n === 'tono') return 'tono';
-  if(n === 'chuy') return 'chuy';
+  if(n === 'yuli') return 'yuli';
+  if(n === 'mafe') return 'mafe';
   return '';
 }
 
 /* ============================================================
-   CARGA DE CITAS
-   Regresa true/false según si la llamada fue autorizada, para
-   que la pantalla de login sepa si debe cerrarse o no.
+   CARGA DE CITAS (para cuando ya hay sesión guardada y válida)
 ============================================================ */
-async function cargarCitas(fecha, authHeaderOverride){
-  const authHeader = authHeaderOverride || getAuthHeader();
+async function cargarCitas(fecha){
+  const authHeader = getAuthHeader();
   if(!authHeader){
     showLogin();
-    return false;
+    return;
   }
 
   headingFecha.textContent = fmtEncabezado(fecha);
@@ -279,8 +303,8 @@ async function cargarCitas(fecha, authHeaderOverride){
 
     if(res.status === 401){
       clearAuthHeader();
-      showLogin('Usuario o contraseña incorrectos.');
-      return false;
+      showLogin('Tu sesión expiró. Vuelve a iniciar sesión.');
+      return;
     }
     if(!res.ok) throw new Error('Respuesta no OK');
 
@@ -290,7 +314,7 @@ async function cargarCitas(fecha, authHeaderOverride){
     if(citas.length === 0){
       content.innerHTML = `<div class="state-msg"><strong>Sin citas este día</strong>Todavía no hay reservaciones para esta fecha.</div>`;
       headingCount.textContent = '0 citas';
-      return true;
+      return;
     }
 
     headingCount.textContent = citas.length === 1 ? '1 cita' : `${citas.length} citas`;
@@ -304,12 +328,10 @@ async function cargarCitas(fecha, authHeaderOverride){
         <div class="barbero-tag ${barberoClass(c.barbero)}">${c.barbero}</div>
       </div>
     `).join('') + `</div>`;
-    return true;
 
   }catch(err){
     console.error(err);
     content.innerHTML = `<div class="state-msg"><strong>No se pudo cargar la agenda</strong>Revisa que Node-RED esté corriendo y vuelve a intentar.</div>`;
-    return true;
   }
 }
 
