@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Barbería Lobo — Reserva tu turno</title>
+<title>Barber Beach — Reserva tu turno</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Arvo:wght@400;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -11,14 +11,19 @@
      PALETA — nombrada para que sea fácil de reutilizar/entender
   ============================================================ */
   :root{
-    --ink:#1A1815;       /* negro cálido, fondo principal */
-    --ink-soft:#252220;  /* variante para tarjetas sobre ink */
-    --leather:#5C3A21;   /* cuero, acentos secundarios */
-    --cream:#EFE6D8;     /* "papel" de los boletos */
-    --cream-dim:#E2D6C2;
-    --red:#9E2B25;       /* rojo barbería, apagado no neón */
-    --steel:#B8B2A6;     /* gris cálido para texto secundario */
-    --line: rgba(239,230,216,0.15);
+    /* Paleta "barber beach": azul océano de fondo, arena en vez de
+       papel, coral de atardecer como acento y verde agua para el
+       texto secundario. Mismos nombres de variable que antes, así
+       que todo el resto del CSS hereda el cambio sin tocarlo. */
+    --ink:#0E2A3D;        /* azul océano profundo, fondo principal */
+    --ink-soft:#163C52;   /* variante para tarjetas sobre ink */
+    --leather:#C97B3D;    /* madera curtida por el sol, acentos secundarios */
+    --cream:#F5EDDC;      /* arena, "papel" de los boletos */
+    --cream-dim:#E9DCC0;  /* arena en sombra */
+    --red:#E4603A;        /* coral de atardecer, reemplaza el rojo */
+    --steel:#8FAFAE;      /* verde agua apagado para texto secundario */
+    --line: rgba(245,237,220,0.15);
+    --wave:#1F6F78;       /* turquesa profundo, para el detalle de la franja */
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -117,7 +122,7 @@
   .pole-divider{
     height:10px;
     background:repeating-linear-gradient(45deg,
-      var(--red) 0 18px, var(--cream) 18px 36px, #2c4a7a 36px 54px, var(--cream) 54px 72px);
+      var(--red) 0 18px, var(--cream) 18px 36px, var(--wave) 36px 54px, var(--cream) 54px 72px);
     opacity:0.9;
   }
 
@@ -181,6 +186,7 @@
   .day-btn .d{font-size:11px;color:var(--steel);display:block;text-transform:uppercase;}
   .day-btn .n{font-family:'Space Mono',monospace;font-size:18px;display:block;margin-top:2px;}
   .day-btn.active{background:var(--red);border-color:var(--red);}
+  .day-btn:disabled{opacity:0.35;cursor:not-allowed;}
 
   .choice-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px;}
   .choice-pill{
@@ -209,6 +215,11 @@
   }
   .contact-fields input:focus{outline:none;border-color:var(--red);}
   .contact-fields input::placeholder{color:var(--steel);}
+  .contact-fields input.invalid{border-color:var(--red);}
+  .field-error{
+    color:var(--red);font-size:12px;margin-top:6px;min-height:16px;
+    font-family:'Space Mono',monospace;
+  }
 
   .confirm-area{margin-top:10px;}
   .empty-hint{color:var(--steel);font-size:14px;font-style:italic;}
@@ -227,6 +238,26 @@
     padding:14px 18px;font-size:13px;color:var(--steel);margin-top:20px;max-width:500px;
   }
 
+  /* botón flotante — siempre visible, para preguntas antes de reservar */
+  .whatsapp-float{
+    position:fixed;right:22px;bottom:22px;z-index:60;
+    width:58px;height:58px;border-radius:50%;
+    background:#25D366;color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 24px rgba(0,0,0,0.35);
+    transition:transform .15s ease;
+  }
+  .whatsapp-float:hover{transform:translateY(-3px) scale(1.05);}
+
+  /* botón para mandar la confirmación ya generada por WhatsApp */
+  .btn-whatsapp{
+    display:inline-flex;align-items:center;gap:8px;
+    background:#25D366;color:#fff;margin-top:16px;
+    padding:13px 22px;font-family:'Arvo',serif;font-weight:700;font-size:14px;
+    text-decoration:none;border:none;cursor:pointer;
+  }
+  .btn-whatsapp:hover{transform:translateY(-2px);}
+
   @media(max-width:800px){
     .hero{grid-template-columns:1fr;padding-top:120px;}
     .hero-visual{order:-1;max-width:280px;margin:0 auto;}
@@ -239,11 +270,11 @@
   <div class="nav">
     <div class="brand">
       <!-- ícono simple de navaja, hecho en SVG en vez de un logo importado -->
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9E2B25" stroke-width="1.6">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#E4603A" stroke-width="1.6">
         <path d="M4 12h9l6-4-2 4 2 4-6-4H4z"/>
-        <circle cx="4" cy="12" r="2" fill="#9E2B25" stroke="none"/>
+        <circle cx="4" cy="12" r="2" fill="#E4603A" stroke="none"/>
       </svg>
-      <div class="display">BARBERÍA LOBO</div>
+      <div class="display">BARBER BEACH</div>
     </div>
     <nav class="nav-links">
       <a href="#servicios">Servicios</a>
@@ -256,7 +287,7 @@
 
 <section class="hero">
   <div>
-    <div class="hero-eyebrow">Col. Costa Azul · Acapulco</div>
+    <div class="hero-eyebrow">Pie de la Cuesta · Acapulco</div>
     <h1>TOMA TU<br><span>TURNO.</span><br>SIN FILA.</h1>
     <p>Reserva tu corte o arreglo de barba en segundos. Elige día, barbero y hora — nosotros te esperamos con la silla lista.</p>
     <a class="btn btn-primary" href="#reservar">Reservar ahora</a>
@@ -264,11 +295,10 @@
   <div class="hero-visual">
     <div class="ticket">
       <div class="ticket-label">Próximo turno disponible</div>
-      <div class="ticket-number" id="hero-next-slot">10:30</div>
+      <div class="ticket-number" id="hero-next-slot">…</div>
       <div class="ticket-perf"></div>
-      <div class="ticket-row"><span>Servicio</span><span>Fade + Barba</span></div>
-      <div class="ticket-row"><span>Barbero</span><span>Cualquiera</span></div>
-      <div class="ticket-row"><span>Hoy</span><span id="hero-today"></span></div>
+      <div class="ticket-row"><span>Barbero</span><span>Cualquiera disponible</span></div>
+      <div class="ticket-row"><span>Día</span><span id="hero-day-label"></span></div>
     </div>
   </div>
 </section>
@@ -322,16 +352,15 @@
         <span class="field-label">5 · Tus datos</span>
         <div class="contact-fields">
           <input type="text" id="input-name" placeholder="Tu nombre">
-          <input type="tel" id="input-phone" placeholder="Tu WhatsApp (10 dígitos)">
+          <div>
+            <input type="tel" id="input-phone" placeholder="Tu WhatsApp (10 dígitos)" inputmode="numeric">
+            <div class="field-error" id="phone-error"></div>
+          </div>
         </div>
         <button class="btn btn-primary" id="btn-confirm">Confirmar reservación</button>
       </div>
 
       <div class="confirm-area" id="confirm-area"></div>
-
-      <div class="whatsapp-note">
-        <strong>Nota de aprendizaje:</strong> este boleto se guarda solo en tu navegador mientras tienes la página abierta (es una demo de portafolio). Para que las reservas se guarden de verdad entre distintos visitantes, el siguiente paso sería conectar esto a una base de datos real — justo lo que veremos en la Fase 3 de tu ruta de aprendizaje.
-      </div>
     </div>
   </div>
 </section>
@@ -340,23 +369,30 @@
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <div class="display" style="font-size:26px;">BARBERÍA LOBO</div>
-        <p style="color:var(--steel);font-size:13px;margin-top:8px;max-width:240px;">Cortes clásicos y modernos en el corazón de Acapulco.</p>
+        <div class="display" style="font-size:26px;">BARBER BEACH</div>
+        <p style="color:var(--steel);font-size:13px;margin-top:8px;max-width:240px;">Cortes en Pie de la Cuesta, Acapulco.</p>
       </div>
       <div class="foot-col">
         <h4>Contacto</h4>
-        <a href="#">WhatsApp: 744 000 0000</a>
-        <a href="#">Costa Azul, Acapulco, Gro.</a>
+        <!-- TODO: pega aquí el link real de Facebook cuando lo tengas -->
+        <a href="#" id="footer-facebook" target="_blank" rel="noopener">Facebook</a>
+        <a href="#" id="footer-whatsapp">WhatsApp: pendiente</a>
+        <a href="#">Pie de La Cuesta - Barra de Coyuca, Pie de la Cuesta, 39900 Acapulco de Juárez, Gro.</a>
       </div>
       <div class="foot-col">
         <h4>Horario</h4>
-        <p>Lun – Sáb: 10:00 – 20:00</p>
-        <p>Domingo: cerrado</p>
+        <p>Miércoles a lunes: 10:00 am – 6:00 pm</p>
+        <p>Comida: 1:00 – 2:00 pm</p>
+        <p>Martes: cerrado</p>
       </div>
     </div>
-    <div class="foot-bottom">Proyecto de portafolio — Barbería Lobo (negocio ficticio).</div>
+    <div class="foot-bottom">Barber Beach — Pie de la Cuesta, Acapulco.</div>
   </div>
 </footer>
+
+<a class="whatsapp-float" id="whatsapp-float" href="#" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp" title="Escríbenos por WhatsApp">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.33 4.95L2 22l5.28-1.39c1.44.79 3.06 1.2 4.72 1.2h.01c5.46 0 9.9-4.45 9.9-9.9 0-2.65-1.03-5.13-2.9-7C17.15 3.02 14.69 2 12.04 2m0 1.8c2.2 0 4.26.86 5.82 2.42a8.2 8.2 0 0 1 2.4 5.79c0 4.51-3.7 8.19-8.23 8.19a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.13.82.84-3.05-.2-.31a8.13 8.13 0 0 1-1.25-4.35c0-4.51 3.7-8.18 8.24-8.18M8.53 7.4c-.17 0-.45.06-.68.32-.24.25-.9.88-.9 2.15s.92 2.5 1.05 2.67c.13.17 1.8 2.87 4.45 3.91 2.2.87 2.65.7 3.13.65.48-.05 1.53-.62 1.75-1.22.22-.6.22-1.11.15-1.22-.06-.1-.24-.17-.5-.3-.26-.13-1.53-.76-1.77-.84-.24-.09-.41-.13-.58.13-.17.26-.66.84-.81 1.01-.15.17-.3.2-.56.06-.26-.13-1.09-.4-2.08-1.29-.77-.68-1.29-1.53-1.44-1.79-.15-.26-.02-.4.11-.53.12-.12.26-.3.4-.45.13-.15.17-.26.26-.43.09-.17.04-.32-.02-.45-.06-.13-.58-1.42-.8-1.94-.21-.5-.42-.44-.58-.45-.15 0-.32-.01-.5-.01Z"/></svg>
+</a>
 
 <script>
 /* ============================================================
@@ -373,14 +409,33 @@ const SERVICES = [
 ];
 
 const BARBERS = [
-  { id: 'cualquiera', name: 'Cualquiera disponible', role: 'El primero libre', bio: 'Te asignamos al barbero disponible más pronto.' },
-  { id: 'tono',        name: 'Tono',    role: 'Especialista en fades', bio: '8 años de experiencia. Le va bien con los degradados difíciles.' },
-  { id: 'chuy',        name: 'Chuy',    role: 'Barbas y navaja',       bio: 'El de la mano firme para arreglos de barba y diseño.' },
+  { id: 'cualquiera', name: 'Cualquiera disponible', role: 'La primera libre', bio: 'Te asignamos a la barbera disponible más pronto.' },
+  // Los ids ('tono','chuy') se dejan igual para que coincidan con los que
+  // ya existen en la tabla "barberos" de Postgres — solo cambia lo que
+  // se muestra en pantalla. Si más adelante actualizas la tabla con ids
+  // reales (ej. 'yuli','mafe'), cambia también los ids aquí.
+  { id: 'tono', name: 'Yuli', role: 'Barbera', bio: 'Atención personalizada, cortes a tu gusto.' },
+  { id: 'chuy', name: 'Mafe', role: 'Barbera', bio: 'Atención personalizada, cortes a tu gusto.' },
 ];
 
-const OPEN_HOUR = 10;   // abre 10:00
-const CLOSE_HOUR = 20;  // cierra 20:00
+const OPEN_HOUR = 10;    // abre 10:00 am
+const CLOSE_HOUR = 18;   // cierra 6:00 pm
+const LUNCH_START = 13;  // hora de comida: 1:00 pm
+const LUNCH_END = 14;    // hora de comida: 2:00 pm
+const CLOSED_DAY = 2;    // 0=domingo,1=lunes,2=martes... — cerrado los martes
 const SLOT_STEP_MIN = 30;
+
+/* Link de Facebook del negocio. Pégalo aquí en cuanto lo tengas a la mano. */
+const FACEBOOK_URL = '#';
+
+/* Número de WhatsApp del negocio, en formato internacional sin
+   espacios ni signos (52 = México, luego los 10 dígitos locales).
+   Cámbialo por el número real cuando lo tengas. */
+const WHATSAPP_NUMBER = '527440000000';
+
+function whatsappLink(mensaje){
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`;
+}
 
 /* ============================================================
    CONEXIÓN AL BACKEND (Node-RED)
@@ -453,6 +508,7 @@ function next7Days(){
 function generateSlots(){
   const slots = [];
   for(let h=OPEN_HOUR; h<CLOSE_HOUR; h++){
+    if(h >= LUNCH_START && h < LUNCH_END) continue; // hora de comida, no hay citas
     for(let m=0; m<60; m+=SLOT_STEP_MIN){
       slots.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));
     }
@@ -495,16 +551,20 @@ function renderBarbersGrid(){
 function renderDayStrip(){
   const el = document.getElementById('day-strip');
   const days = next7Days();
-  if(!state.selectedDate) state.selectedDate = fmtDate(days[0]);
+  if(!state.selectedDate){
+    const primerDisponible = days.find(d => d.getDay() !== CLOSED_DAY) || days[0];
+    state.selectedDate = fmtDate(primerDisponible);
+  }
   el.innerHTML = days.map(d => {
     const key = fmtDate(d);
+    const cerrado = d.getDay() === CLOSED_DAY;
     const active = key === state.selectedDate ? 'active' : '';
-    return `<button class="day-btn ${active}" data-date="${key}">
+    return `<button class="day-btn ${active}" data-date="${key}" ${cerrado ? 'disabled title="Cerrado los martes"' : ''}>
       <span class="d">${DAY_NAMES[d.getDay()]}</span>
       <span class="n">${d.getDate()}</span>
     </button>`;
   }).join('');
-  el.querySelectorAll('.day-btn').forEach(btn=>{
+  el.querySelectorAll('.day-btn:not(:disabled)').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       state.selectedDate = btn.dataset.date;
       state.selectedSlot = null;
@@ -589,6 +649,36 @@ function renderConfirmArea(){
 }
 
 /* ============================================================
+   VALIDACIÓN DE TELÉFONO
+   Aceptamos que escriban espacios, guiones o paréntesis (los
+   quitamos antes de validar), pero exigimos que queden 10
+   dígitos — formato de celular en México, sin código de país.
+============================================================ */
+function soloDigitos(phone){
+  return phone.replace(/\D/g, '');
+}
+function isValidPhone(phone){
+  return soloDigitos(phone).length === 10;
+}
+
+const phoneInput = document.getElementById('input-phone');
+const phoneError = document.getElementById('phone-error');
+
+phoneInput.addEventListener('input', () => {
+  const val = phoneInput.value.trim();
+  if(val === ''){
+    phoneInput.classList.remove('invalid');
+    phoneError.textContent = '';
+  } else if(!isValidPhone(val)){
+    phoneInput.classList.add('invalid');
+    phoneError.textContent = `Faltan ${10 - soloDigitos(val).length} dígitos`;
+  } else {
+    phoneInput.classList.remove('invalid');
+    phoneError.textContent = '';
+  }
+});
+
+/* ============================================================
    CONFIRMAR RESERVACIÓN
    Ahora manda la reserva a Node-RED. El backend es quien decide
    si el horario sigue libre — así dos personas ya no pueden
@@ -599,6 +689,12 @@ async function confirmBooking(){
   const phone = document.getElementById('input-phone').value.trim();
   if(!name || !phone){
     alert('Por favor completa tu nombre y WhatsApp para confirmar.');
+    return;
+  }
+  if(!isValidPhone(phone)){
+    phoneInput.classList.add('invalid');
+    phoneError.textContent = 'Ingresa un WhatsApp válido a 10 dígitos.';
+    phoneInput.focus();
     return;
   }
 
@@ -615,7 +711,7 @@ async function confirmBooking(){
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         nombre: name,
-        telefono: phone,
+        telefono: soloDigitos(phone),
         servicio: service.id,
         barbero: barber.id,
         fecha: state.selectedDate,
@@ -644,6 +740,8 @@ async function confirmBooking(){
   const dateObj = new Date(state.selectedDate+'T00:00:00');
   const dateLabel = dateObj.toLocaleDateString('es-MX', { weekday:'long', day:'numeric', month:'long' });
 
+  const mensajeWhatsapp = `Hola, soy ${name}. Reservé el ${dateLabel} a las ${state.selectedSlot} con ${barber.name} (${service.name}). Folio #${data.folio}.`;
+
   const confirmArea = document.getElementById('confirm-area');
   confirmArea.dataset.locked = 'true';
   confirmArea.innerHTML = `
@@ -658,6 +756,10 @@ async function confirmBooking(){
       <div class="ticket-row"><span>Hora</span><span>${state.selectedSlot}</span></div>
       <div class="ticket-row"><span>Total</span><span>$${service.price} MXN</span></div>
     </div>
+    <a class="btn-whatsapp" href="${whatsappLink(mensajeWhatsapp)}" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.33 4.95L2 22l5.28-1.39c1.44.79 3.06 1.2 4.72 1.2h.01c5.46 0 9.9-4.45 9.9-9.9 0-2.65-1.03-5.13-2.9-7C17.15 3.02 14.69 2 12.04 2m0 1.8c2.2 0 4.26.86 5.82 2.42a8.2 8.2 0 0 1 2.4 5.79c0 4.51-3.7 8.19-8.23 8.19a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.13.82.84-3.05-.2-.31a8.13 8.13 0 0 1-1.25-4.35c0-4.51 3.7-8.18 8.24-8.18M8.53 7.4c-.17 0-.45.06-.68.32-.24.25-.9.88-.9 2.15s.92 2.5 1.05 2.67c.13.17 1.8 2.87 4.45 3.91 2.2.87 2.65.7 3.13.65.48-.05 1.53-.62 1.75-1.22.22-.6.22-1.11.15-1.22-.06-.1-.24-.17-.5-.3-.26-.13-1.53-.76-1.77-.84-.24-.09-.41-.13-.58.13-.17.26-.66.84-.81 1.01-.15.17-.3.2-.56.06-.26-.13-1.09-.4-2.08-1.29-.77-.68-1.29-1.53-1.44-1.79-.15-.26-.02-.4.11-.53.12-.12.26-.3.4-.45.13-.15.17-.26.26-.43.09-.17.04-.32-.02-.45-.06-.13-.58-1.42-.8-1.94-.21-.5-.42-.44-.58-.45-.15 0-.32-.01-.5-.01Z"/></svg>
+      Enviar confirmación por WhatsApp
+    </a>
   `;
 
   document.getElementById('contact-section').style.display = 'none';
@@ -669,12 +771,53 @@ async function confirmBooking(){
 document.getElementById('btn-confirm').addEventListener('click', confirmBooking);
 
 /* ============================================================
-   HERO — muestra el próximo horario libre como boleto de ejemplo
+   HERO — muestra el próximo turno REAL disponible, consultando
+   la disponibilidad de Node-RED día por día (saltando los martes
+   y la hora de comida) hasta encontrar el primer hueco libre.
 ============================================================ */
-function renderHeroTicket(){
-  const today = new Date();
-  document.getElementById('hero-today').textContent =
-    today.toLocaleDateString('es-MX', { day:'numeric', month:'short' });
+async function renderHeroTicket(){
+  const numEl = document.getElementById('hero-next-slot');
+  const dayEl = document.getElementById('hero-day-label');
+  const hoy = new Date();
+  const slotsDelDia = generateSlots();
+
+  for(let i=0; i<14; i++){
+    const d = new Date(hoy);
+    d.setDate(hoy.getDate()+i);
+    if(d.getDay() === CLOSED_DAY) continue; // cerrado los martes
+
+    const dateStr = fmtDate(d);
+    let ocupados;
+    try{
+      ocupados = await fetchDisponibilidad(dateStr, 'cualquiera');
+    }catch(err){
+      console.error(err);
+      continue; // si falla la consulta de este día, probamos el siguiente
+    }
+
+    const esHoy = i === 0;
+    const nowMinutes = hoy.getHours()*60 + hoy.getMinutes();
+
+    const libre = slotsDelDia.find(time=>{
+      if(ocupados.includes(time)) return false;
+      if(esHoy){
+        const [hh, mm] = time.split(':').map(Number);
+        if(hh*60+mm <= nowMinutes) return false;
+      }
+      return true;
+    });
+
+    if(libre){
+      numEl.textContent = libre;
+      dayEl.textContent = esHoy
+        ? 'Hoy'
+        : d.toLocaleDateString('es-MX', { weekday:'long', day:'numeric', month:'short' });
+      return;
+    }
+  }
+
+  numEl.textContent = '—';
+  dayEl.textContent = 'Sin turnos próximos';
 }
 
 /* ============================================================
@@ -692,6 +835,13 @@ renderServicesMenu();
 renderBarbersGrid();
 renderHeroTicket();
 renderAll();
+
+document.getElementById('footer-facebook').href = FACEBOOK_URL;
+document.getElementById('whatsapp-float').href =
+  whatsappLink('Hola, quiero preguntar algo sobre un corte 🙂');
+document.getElementById('footer-whatsapp').href =
+  whatsappLink('Hola, quiero preguntar algo sobre un corte 🙂');
+document.getElementById('footer-whatsapp').target = '_blank';
 </script>
 
 </body>
